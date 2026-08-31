@@ -2,10 +2,16 @@ const shell = document.querySelector('#shell');
 const basePath = '/u-ai-board-demo';
 const routeHref = (href) => `${basePath}/?screen=${encodeURIComponent(href)}`;
 const allowedTaskFlags = new Set(['under10', 'remote', 'beginner']);
-const taskDetailPath = /^\/tasks\/([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})$/;
+const taskDetailPath = /^\/tasks\/([a-zA-Z0-9-]+)$/;
 const projectPath = /^\/projects\/([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})$/;
 const changePath = /^\/changes\/([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})$/;
 const yen = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 });
+const taskRankDefinitions = {
+  A: { label: '高責任', description: '機密・安全・事業成果に関わる仕事', memberOnly: true },
+  B: { label: '専門', description: '専門判断や対外品質が求められる仕事', memberOnly: false },
+  C: { label: '実務', description: '基本判断を伴う制作・運用の仕事', memberOnly: false },
+  D: { label: '入門', description: '手順が明確な定型・低リスクの仕事', memberOnly: false },
+};
 
 async function apiFetch(input, init) {
   const response = await fetch(input, init);
@@ -29,6 +35,20 @@ function pendingCommand(store, key, prefix, reason, payload = {}) {
 const escapeHtml = (value) => String(value).replace(/[&<>"]/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
 })[character]);
+
+function applyTaskRanks(data) {
+  const rankById = new Map(Object.entries(data.taskRanks || {})
+    .flatMap(([rank, ids]) => ids.map((id) => [id, rank])));
+  data.tasks = (data.tasks || []).map((task) => ({ ...task, rank: rankById.get(task.id) || 'C' }));
+  return data;
+}
+
+const isUwordMember = (data) => data.member?.isUwordMember === true;
+const taskRank = (task) => taskRankDefinitions[task.rank] || taskRankDefinitions.C;
+const rankBadge = (task) => {
+  const rank = taskRank(task);
+  return `<span class="rank-badge rank-${escapeHtml(task.rank || 'C').toLowerCase()}">ランク ${escapeHtml(task.rank || 'C')}</span><span class="rank-label">${escapeHtml(rank.label)} — ${escapeHtml(rank.description)}</span>`;
+};
 
 const path = (new URLSearchParams(location.search).get('screen') || '/tasks').replace(/\/$/, '');
 
@@ -75,17 +95,19 @@ function pageHeader(eyebrow, title, description = '') {
   </header>`;
 }
 
-function taskCard(task) {
+function taskCard(task, member) {
   const flags = Array.isArray(task.flags)
     ? task.flags.filter((flag) => allowedTaskFlags.has(flag)).join(' ')
     : '';
-  const detail = task.id === 'task-1' || task.detailHref
-    ? `<a class="card-link" href="${routeHref(escapeHtml(task.detailHref || '/tasks/task-1'))}">詳しい条件を見る</a>`
-    : '<span class="meta-line">一覧表示用の合成タスク</span>';
+  const accessLocked = taskRank(task).memberOnly && !member;
+  const detail = accessLocked
+    ? `<div class="member-lock"><strong>U-WORD会員限定</strong><span>詳細閲覧・応募には会員資格が必要です</span><a href="${routeHref('/me')}">会員条件を見る</a></div>`
+    : `<a class="card-link" href="${routeHref(task.detailHref || `/tasks/${task.id}`)}">詳しい条件を見る・応募する</a>`;
   return `<article class="paper-card task-card" data-task-id="${escapeHtml(task.id)}" data-flags="${escapeHtml(flags)}">
     <span class="state-band">${escapeHtml(task.status)}</span>
     <div class="task-card-body">
       <p class="project-name">${escapeHtml(task.project)}</p>
+      <div class="rank-row">${rankBadge(task)}</div>
       <h2 class="task-name">${escapeHtml(task.title)}</h2>
       <div class="money-pair">
         <div><span class="money-label">手取り見込</span><strong class="num take-home">${escapeHtml(task.takeHome)}</strong></div>
@@ -99,13 +121,14 @@ function taskCard(task) {
         <li>${escapeHtml(task.slots)}</li>
       </ul>
       <div class="skills" aria-label="必要スキル">${task.skills.map((skill) => `<span class="skill">${escapeHtml(skill)}</span>`).join('')}</div>
-      <p class="member-bonus">協会サブスクに入るとさらに <strong class="num">${escapeHtml(task.memberBonus)}</strong></p>
+      <p class="member-bonus">U-WORD会員になるとさらに <strong class="num">${escapeHtml(task.memberBonus)}</strong></p>
       ${detail}
     </div>
   </article>`;
 }
 
 function taskListScreen(data) {
+  const member = isUwordMember(data);
   return `${pageHeader('SCREEN 01 / TASKS', '仕事を探す', 'AI系でよくある仕事を、難易度・工数・必要スキルと一緒に比較できます。')}
     <section aria-labelledby="task-controls-title">
       <h2 class="section-title" id="task-controls-title">並び順と条件</h2>
@@ -133,13 +156,19 @@ function taskListScreen(data) {
       <strong>AI仕事の参考例</strong>
       <p>2026年8月31日にクラウドワークス、ランサーズ等の募集傾向を調査して作成した40件の合成案件です。案件名にAI表記のない一般業務例は、発注者がAI利用を許可し、機密情報を外部AIへ送らない想定です。実在案件の転載ではなく、金額も相場保証ではありません。</p>
     </aside>
-    <div class="task-grid" id="task-grid">${data.tasks.map(taskCard).join('')}</div>
+    <aside class="notice rank-guide" aria-label="仕事ランクについて">
+      <strong>仕事ランクと閲覧条件</strong>
+      <div class="rank-legend">${Object.entries(taskRankDefinitions).reverse().map(([rank, item]) => `<span><b class="rank-badge rank-${rank.toLowerCase()}">ランク ${rank}</b>${escapeHtml(item.label)}</span>`).join('')}</div>
+      <p>重要性・難易度・責任の重さを総合して分類しています。ランクAの詳細閲覧と応募はU-WORD会員限定です。</p>
+    </aside>
+    <div class="task-grid" id="task-grid">${data.tasks.map((task) => taskCard(task, member)).join('')}</div>
     <p class="empty-state" id="task-empty" hidden>この条件に合うタスクはありません。条件を外して確認してください。</p>`;
 }
 
 function taskDetailScreen(data) {
   const task = data.tasks[0];
   return `${pageHeader('SCREEN 02 / TASK DETAIL', task.project, task.title)}
+    <aside class="notice rank-summary"><div class="rank-row">${rankBadge(task)}</div><p>${taskRank(task).memberOnly ? 'U-WORD会員向けの高責任案件です。' : 'すべての利用者が詳細を確認し、応募できます。'}</p></aside>
     <div class="section-stack">
       <section aria-labelledby="condition-title">
         <h2 class="section-title" id="condition-title">条件</h2>
@@ -149,8 +178,8 @@ function taskDetailScreen(data) {
             <dt>実質時給見込</dt><dd class="num hourly">${escapeHtml(task.hourly)}</dd>
             <dt>工数</dt><dd><span class="num">${escapeHtml(task.hours)}</span>・${escapeHtml(task.pace)}</dd>
             <dt>締切</dt><dd class="urgent">${escapeHtml(task.deadline)}</dd>
-            <dt>着手できる日</dt><dd>${escapeHtml(task.startDate)}</dd>
-            <dt>引き渡し先</dt><dd>${escapeHtml(task.handoff)}</dd>
+            <dt>着手できる日</dt><dd>${escapeHtml(task.startDate || '応募承認後に調整')}</dd>
+            <dt>引き渡し先</dt><dd>${escapeHtml(task.handoff || task.project)}</dd>
           </dl>
           <p class="money-note">ここからさらに引かれるものはありません</p>
         </div>
@@ -159,9 +188,9 @@ function taskDetailScreen(data) {
         <h2 class="section-title" id="work-title">仕事の内容</h2>
         <div class="paper-card detail-card">
           <dl class="definition-list">
-            <dt>成果物</dt><dd>${escapeHtml(task.deliverable)}</dd>
-            <dt>完了条件</dt><dd>${escapeHtml(task.doneWhen)}</dd>
-            <dt>対象外</dt><dd>${escapeHtml(task.scopeOut)}</dd>
+            <dt>成果物</dt><dd>${escapeHtml(task.deliverable || `${task.title}の成果物一式`)}</dd>
+            <dt>完了条件</dt><dd>${escapeHtml(task.doneWhen || '指定された件数・形式を満たし、人による最終確認が完了していること')}</dd>
+            <dt>対象外</dt><dd>${escapeHtml(task.scopeOut || '契約範囲外の追加作業、外部サービスへの無断登録、最終的な法的判断')}</dd>
             <dt>必要スキル</dt><dd>${task.skills.map(escapeHtml).join('・')}</dd>
           </dl>
         </div>
@@ -216,6 +245,21 @@ function taskDetailScreen(data) {
         <button class="button button-secondary" id="cancel-application" type="button">修正する</button>
       </div>
     </dialog>`;
+}
+
+function lockedTaskScreen(data) {
+  const task = data.tasks[0];
+  return `${pageHeader('MEMBERS ONLY / RANK A', task.project, task.title)}
+    <section class="paper-card membership-gate" aria-labelledby="membership-gate-title">
+      <div class="rank-row">${rankBadge(task)}</div>
+      <h2 id="membership-gate-title">詳細閲覧・応募はU-WORD会員限定です</h2>
+      <p>この仕事は、機密情報・安全性・事業成果への影響が大きく、担当者確認が必要な高責任案件です。</p>
+      <p class="notice">公開デモでは実会員認証や加入処理を行いません。実運用ではサーバー側で会員資格を確認し、非会員には詳細データ自体を返しません。</p>
+      <div class="button-row">
+        <a class="button button-secondary" role="button" href="${routeHref('/tasks')}">仕事一覧へ戻る</a>
+        <a class="button" role="button" href="${routeHref('/me')}">会員条件を見る</a>
+      </div>
+    </section>`;
 }
 
 function myPageScreen(data) {
@@ -1640,8 +1684,16 @@ async function start() {
   } else {
     const response = await fetch(`${basePath}/fixtures.json`);
     if (!response.ok) throw new Error('fixture response failed');
-    data = await response.json();
-    screen = screens[path];
+    data = applyTaskRanks(await response.json());
+    if (detailMatch) {
+      const task = data.tasks.find((item) => item.id === detailMatch[1]);
+      if (task) {
+        data = { ...data, tasks: [task] };
+        screen = taskRank(task).memberOnly && !isUwordMember(data) ? lockedTaskScreen : taskDetailScreen;
+      }
+    } else {
+      screen = screens[path];
+    }
   }
   if (!screen) {
     location.replace(routeHref('/tasks'));
@@ -1654,7 +1706,7 @@ async function start() {
 
   if (path === '/tasks') initTaskList(data);
   if (path === '/me') initMyPage({ connected });
-  if (path === '/tasks/task-1' || detailMatch) initTaskDetail({ connected, taskId: detailMatch?.[1] });
+  if (screen === taskDetailScreen) initTaskDetail({ connected, taskId: detailMatch?.[1] });
   if (path === '/projects/project-1' || projectMatch) initProject({
     connected, projectId: data.project.id, changeDraft: data.project.changeDraft,
   });

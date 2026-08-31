@@ -259,6 +259,25 @@ input:invalid:not(:placeholder-shown), textarea[aria-invalid="true"] { border-co
 .project-name { margin: 0; color: var(--ink); font-family: var(--mincho); font-size: 1.125rem; line-height: 1.35; }
 .task-name { margin: 0; font-size: .96875rem; font-weight: 700; line-height: 1.45; }
 
+.rank-row { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; }
+.rank-badge { display: inline-block; border: 1px solid currentColor; padding: .15rem .45rem; font-family: var(--mono); font-size: .6875rem; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+.rank-label { color: var(--usu); font-size: .75rem; }
+.rank-a { color: var(--shu); }
+.rank-b { color: var(--ink); }
+.rank-c { color: var(--midori); }
+.rank-d { color: var(--usu); }
+.rank-guide { display: grid; gap: .65rem; margin-bottom: 1rem; }
+.rank-guide p, .rank-summary p { margin: 0; }
+.rank-legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.rank-legend span { display: flex; gap: .4rem; align-items: center; min-width: 0; }
+.member-lock { display: grid; gap: .2rem; padding: .65rem .75rem; border-left: .25rem solid var(--shu); background: color-mix(in srgb, var(--shu) 7%, var(--ply)); }
+.member-lock strong { color: var(--shu); }
+.member-lock span { color: var(--usu); font-size: .75rem; }
+.member-lock a { justify-self: start; }
+.rank-summary { display: grid; gap: .5rem; margin-bottom: 1.5rem; }
+.membership-gate { display: grid; gap: 1rem; max-width: 44rem; margin-inline: auto; padding: 1.25rem; }
+.membership-gate .button-row { margin-top: .25rem; }
+
 .money-pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -280,7 +299,8 @@ input:invalid:not(:placeholder-shown), textarea[aria-invalid="true"] { border-co
 .skills { display: flex; flex-wrap: wrap; gap: .35rem; }
 .skill { border: 1px solid var(--rule); background: var(--paper); padding: .2rem .5rem; font-size: .75rem; }
 .member-bonus { margin: 0; padding: .6rem .75rem; border-left: .25rem solid var(--yamabuki); background: color-mix(in srgb, var(--yamabuki) 11%, var(--ply)); }
-.card-link { justify-self: start; font-weight: 700; }
+.card-link, .member-lock a { display: inline-flex; min-height: 2.75rem; align-items: center; font-weight: 700; }
+.card-link { justify-self: start; }
 
 .empty-state { padding: 2rem; border: 1px dashed var(--rule); background: var(--ply); text-align: center; }
 
@@ -409,6 +429,7 @@ dialog::backdrop { background: color-mix(in srgb, var(--sumi) 58%, transparent);
   .sticky-apply .button { width: 100%; }
   .change-choice { grid-template-columns: minmax(0, 1fr); }
   .equal-weight { min-height: 3rem; }
+  .rank-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 24rem) {
