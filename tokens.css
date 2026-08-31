@@ -1,0 +1,33 @@
+/* デザイントークン
+   意匠の出どころは複写伝票（NCR紙）。地は冷たい青灰でクリームではない。
+   朱は検印と警告だけに使い、それ以外には出さない。 */
+:root {
+  --paper:    #EEF1F4;  /* 伝票の地 */
+  --ply:      #FFFFFF;  /* 上紙 */
+  --rule:     #C9D3DD;  /* 罫線 */
+  --ink:      #1D3557;  /* 複写青 — 構造 */
+  --sumi:     #101820;  /* 墨 — 本文と金額 */
+  --usu:      #59697A;  /* 薄墨 — 補助 */
+  --shu:      #B33A3A;  /* 検印朱 — 印と警告のみ */
+  --midori:   #2F6B5E;  /* 済・手取り */
+  --yamabuki: #C8912A;  /* 募集中・会員上乗せ */
+
+  --mincho: 'Hiragino Mincho ProN','Yu Mincho',YuMincho,serif;  /* 画面名・案件名のみ */
+  --gothic: 'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Noto Sans JP',sans-serif;
+  --mono:   ui-monospace,'SF Mono',Menlo,monospace;             /* 金額・工数・率 */
+}
+
+/* 金額・工数・率は必ず等幅の桁揃え。伝票の数字欄として縦に読ませる */
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* 型のスケール */
+/* 画面名 26px mincho / 案件名 19-22px mincho / タスク名 15.5px gothic bold
+   本文 14px gothic 行間1.6 / 補助 11px gothic 字間.14em
+   手取り 24px mono bold / 金額 15-19px mono bold */
+
+/* タップ領域は最低44px。隙間時間の利用者は歩きながら操作する */
+button, a[role="button"] { min-height: 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

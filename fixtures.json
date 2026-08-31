@@ -1,0 +1,185 @@
+{
+  "meta": {
+    "label": "PUBLIC DEMO / 合成データ",
+    "notice": "この画面は公開デモです。顧客・会員の実データ、外部API、実決済、会員資格の変更は使用しません。",
+    "updatedAt": "2026年8月30日 10:00 JST"
+  },
+  "taskOrders": {
+    "hourly": ["task-2", "task-1", "task-3"],
+    "deadline": ["task-1", "task-3", "task-2"],
+    "hours": ["task-3", "task-1", "task-2"],
+    "amount": ["task-2", "task-1", "task-3"]
+  },
+  "tasks": [
+    {
+      "id": "task-1",
+      "project": "地域研修レポート整備（架空案件）",
+      "title": "受講記録の構造化と確認",
+      "status": "募集中",
+      "takeHome": "¥42,600",
+      "hourly": "¥5,325",
+      "hours": "8時間",
+      "pace": "1日2hで4日",
+      "deadline": "9月2日（あと3日）",
+      "urgent": true,
+      "skills": ["文章整理", "表計算", "個人情報保護"],
+      "applications": "応募 2件",
+      "slots": "残り 1枠",
+      "memberBonus": "+¥4,506",
+      "flags": ["under10", "remote"],
+      "startDate": "2026年9月1日から",
+      "handoff": "U-AI協会の案件担当者",
+      "deliverable": "匿名化済み受講記録の一覧と、確認結果のメモ",
+      "doneWhen": "指定された項目が全件入り、重複と欠損の確認結果が記載されていること",
+      "scopeOut": "元データの本人確認、外部サービスへの登録、法的判断",
+      "base": "¥38,094",
+      "review": "2026年8月20日 — 依頼条件と確認手順が明確で、質問への回答も当日中でした。"
+    },
+    {
+      "id": "task-2",
+      "project": "公開資料アクセシビリティ確認（架空案件）",
+      "title": "PDF見出しと代替テキストの点検",
+      "status": "募集中",
+      "takeHome": "¥58,400",
+      "hourly": "¥5,840",
+      "hours": "10時間",
+      "pace": "1日2hで5日",
+      "deadline": "9月9日",
+      "urgent": false,
+      "skills": ["アクセシビリティ", "PDF"],
+      "applications": "応募 1件",
+      "slots": "残り 2枠",
+      "memberBonus": "+¥5,120",
+      "flags": ["under10", "remote"]
+    },
+    {
+      "id": "task-3",
+      "project": "AI研修アンケート準備（架空案件）",
+      "title": "設問の表記ゆれチェック",
+      "status": "募集中",
+      "takeHome": "¥18,600",
+      "hourly": "¥4,650",
+      "hours": "4時間",
+      "pace": "1日2hで2日",
+      "deadline": "9月5日",
+      "urgent": false,
+      "skills": ["校正", "未経験可"],
+      "applications": "応募 4件",
+      "slots": "残り 1枠",
+      "memberBonus": "+¥1,940",
+      "flags": ["under10", "remote", "beginner"]
+    }
+  ],
+  "member": {
+    "name": "テスト会員",
+    "membership": "U-AI協会 未加入（ローカル表示）",
+    "metrics": [
+      {"label": "確定した手取り", "value": "¥126,400"},
+      {"label": "今月の稼働", "value": "24時間"},
+      {"label": "平均実質時給", "value": "¥5,267"},
+      {"label": "応募中", "value": "2件"}
+    ],
+    "missedBonus": "¥6,254",
+    "notifications": [
+      {"label": "納品が検収されました", "createdAt": "2026/8/31 10:00"}
+    ],
+    "work": [
+      {"state": "進行中", "title": "研修資料の校正", "meta": "締切 9月4日・手取り確定 ¥48,000"},
+      {"state": "要対応", "title": "確認記録の追記", "meta": "差戻し理由と不足する完了条件を確認してください"},
+      {"state": "応募中", "title": "受講記録の構造化と確認", "meta": "選考待ち・応募しても確定ではありません"}
+    ]
+  },
+  "project": {
+    "title": "地域研修レポート整備（架空案件）",
+    "status": "進行中",
+    "unallocated": "¥8,000",
+    "balance": [
+      {"label": "支給", "value": "¥156,000"},
+      {"label": "紹介", "value": "¥12,000"},
+      {"label": "フィー", "value": "¥24,000"},
+      {"label": "未確定の原資", "value": "¥8,000"},
+      {"label": "原資", "value": "¥200,000"}
+    ],
+    "balanced": true,
+    "tasks": [
+      {"title": "受講記録の構造化と確認", "amount": "¥42,600", "status": "未確定"},
+      {"title": "研修資料の校正", "amount": "¥48,000", "status": "金額確定"},
+      {"title": "報告書テンプレート整備", "amount": "¥65,400", "status": "金額確定"}
+    ],
+    "applications": [
+      {"id": "application-a", "name": "テスト会員 A", "task": "受講記録の構造化と確認", "message": "表計算と文章整理の経験を生かし、9月1日から着手できます。", "status": "選考中"},
+      {"id": "application-b", "name": "テスト会員 B", "task": "受講記録の構造化と確認", "message": "同種の匿名化チェックを経験しています。", "status": "選考中"}
+    ],
+    "steps": [
+      {"label": "元データの匿名化確認", "done": true},
+      {"label": "受講記録の構造化", "done": false},
+      {"label": "担当者による検収", "done": false}
+    ]
+  },
+  "editor": {
+    "defaultTitle": "新規研修資料整備（架空案件）",
+    "defaultDeliverable": "確認済み一覧と作業記録",
+    "defaultDeadline": "2026-09-12",
+    "templates": [
+      {"id": "standard", "label": "標準配分（合成fixture）"},
+      {"id": "split", "label": "2タスク分割（合成fixture）"}
+    ],
+    "allocationPreviews": {
+      "standard": {
+        "summary": "支給1件・未確定1件",
+        "rows": [
+          {"label": "見込手取り", "value": "¥74,000"},
+          {"label": "紹介", "value": "¥6,000"},
+          {"label": "フィー", "value": "¥14,000"},
+          {"label": "未確定の原資", "value": "¥6,000"}
+        ],
+        "status": "保存則一致・公開前確認が必要"
+      },
+      "split": {
+        "summary": "支給2件・未確定2件",
+        "rows": [
+          {"label": "見込手取り", "value": "¥68,000"},
+          {"label": "紹介", "value": "¥6,000"},
+          {"label": "フィー", "value": "¥14,000"},
+          {"label": "未確定の原資", "value": "¥12,000"}
+        ],
+        "status": "保存則一致・公開前確認が必要"
+      }
+    }
+  },
+  "change": {
+    "title": "作業範囲と手取りの変更",
+    "delta": "−¥19,000",
+    "expires": "2026年9月6日 23:59 JST",
+    "reason": "確認対象を20件減らし、納品日を2日早める提案です。",
+    "before": [
+      {"label": "手取り確定", "value": "¥48,000"},
+      {"label": "締切", "value": "2026年9月8日"},
+      {"label": "対象", "value": "受講記録 50件"}
+    ],
+    "after": [
+      {"label": "変更後の手取り", "value": "¥29,000"},
+      {"label": "締切", "value": "2026年9月6日"},
+      {"label": "対象", "value": "受講記録 30件"}
+    ],
+    "rejectEffect": "拒否した場合、手取り ¥48,000・締切9月8日・対象50件の現状を維持します。"
+  },
+  "admin": {
+    "summary": [
+      {"label": "検算", "value": "全3件一致", "state": "ok"},
+      {"label": "会員名簿同期", "value": "2時間前", "state": "ok"},
+      {"label": "支払い待ち", "value": "2件", "state": "attention"},
+      {"label": "金額操作停止", "value": "0件", "state": "ok"}
+    ],
+    "diagnostics": [
+      {"kind": "検算", "title": "地域研修レポート整備", "detail": "差額 0円・run再現一致", "state": "ok", "status": "正常"},
+      {"kind": "同期", "title": "U-Word会員名簿", "detail": "最終同期 2026年8月30日 08:00 JST", "state": "ok", "status": "正常"},
+      {"kind": "支払い", "title": "支払予定 PAY-MOCK-02", "detail": "検収から6日・実振込は行いません", "state": "attention", "status": "要確認"},
+      {"kind": "通知", "title": "outbox再送待ち", "detail": "合成通知 1件・金額処理は維持", "state": "attention", "status": "要確認"}
+    ],
+    "ownerShares": [
+      {"name": "テスト掲載者 A", "share": "82%", "state": "warning", "status": "集中警告"},
+      {"name": "テスト掲載者 B", "share": "18%", "state": "ok", "status": "確認済み"}
+    ]
+  }
+}
