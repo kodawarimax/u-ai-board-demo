@@ -131,7 +131,7 @@ function taskListScreen(data) {
     </section>
     <aside class="notice" aria-label="掲載案件について">
       <strong>AI仕事の参考例</strong>
-      <p>2026年8月31日にクラウドワークス、ランサーズ、ココナラの募集傾向を調査して作成した合成案件です。実在案件の転載ではなく、金額も相場保証ではありません。</p>
+      <p>2026年8月31日にクラウドワークス、ランサーズ等の募集傾向を調査して作成した40件の合成案件です。案件名にAI表記のない一般業務例は、発注者がAI利用を許可し、機密情報を外部AIへ送らない想定です。実在案件の転載ではなく、金額も相場保証ではありません。</p>
     </aside>
     <div class="task-grid" id="task-grid">${data.tasks.map(taskCard).join('')}</div>
     <p class="empty-state" id="task-empty" hidden>この条件に合うタスクはありません。条件を外して確認してください。</p>`;
