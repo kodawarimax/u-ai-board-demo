@@ -12,9 +12,12 @@ assert.equal(data.taskRanks.A.length, 8);
 assert.equal(data.member.isUwordMember, false);
 for (const id of data.taskRanks.A) {
   const task = data.tasks.find((item) => item.id === id);
-  for (const field of ['deliverable', 'doneWhen', 'scopeOut', 'legalTerms', 'review']) {
+  for (const field of ['skills', 'deliverable', 'doneWhen', 'scopeOut', 'legalTerms', 'review']) {
     assert.equal(field in task, false, `${id} must not expose ${field}`);
   }
+}
+for (const task of data.tasks.filter(({ id }) => !data.taskRanks.A.includes(id))) {
+  assert.ok(Array.isArray(task.skills) && task.skills.length >= 2, `${task.id} must list required skills`);
 }
 
 console.log('rank gate fixtures: OK');

@@ -12,6 +12,12 @@ const taskRankDefinitions = {
   C: { label: '実務', description: '基本判断を伴う制作・運用の仕事', memberOnly: false },
   D: { label: '入門', description: '手順が明確な定型・低リスクの仕事', memberOnly: false },
 };
+const skillLevelDefinitions = {
+  A: { label: '上級・責任者', criterion: '関連実績を説明でき、品質・機密・障害時対応まで自律判断できる' },
+  B: { label: '経験者', criterion: '関連業務の実績または成果物を提示できる' },
+  C: { label: '実務基礎', criterion: '基本操作ができ、手順に沿って自分で品質確認できる' },
+  D: { label: '初級', criterion: '未経験でも、手順書に沿って作業・報告できる' },
+};
 
 async function apiFetch(input, init) {
   const response = await fetch(input, init);
@@ -45,10 +51,27 @@ function applyTaskRanks(data) {
 
 const isUwordMember = (data) => data.member?.isUwordMember === true;
 const taskRank = (task) => taskRankDefinitions[task.rank] || taskRankDefinitions.C;
+const skillLevel = (task) => skillLevelDefinitions[task.rank] || skillLevelDefinitions.C;
 const rankBadge = (task) => {
   const rank = taskRank(task);
   return `<span class="rank-badge rank-${escapeHtml(task.rank || 'C').toLowerCase()}">ランク ${escapeHtml(task.rank || 'C')}</span><span class="rank-label">${escapeHtml(rank.label)} — ${escapeHtml(rank.description)}</span>`;
 };
+
+function skillRequirement(task, locked = false) {
+  if (locked) {
+    return `<section class="skill-requirement skill-requirement-locked" aria-label="必要スキルは会員限定">
+      <div class="skill-heading"><strong>必要スキル</strong><span class="skill-level">会員限定</span></div>
+      <p>具体的なスキルと応募目安は、U-WORD会員のみ確認できます。</p>
+    </section>`;
+  }
+  const skills = Array.isArray(task.skills) ? task.skills : [];
+  const level = skillLevel(task);
+  return `<section class="skill-requirement" aria-label="必要スキル">
+    <div class="skill-heading"><strong>必須スキル</strong><span class="skill-level">${escapeHtml(level.label)}</span></div>
+    <div class="skills">${skills.map((skill) => `<span class="skill">${escapeHtml(skill)}</span>`).join('')}</div>
+    <p><span>応募できる目安</span>${escapeHtml(level.criterion)}</p>
+  </section>`;
+}
 
 const path = (new URLSearchParams(location.search).get('screen') || '/tasks').replace(/\/$/, '');
 
@@ -120,7 +143,7 @@ function taskCard(task, member) {
         <li>${escapeHtml(task.applications)}</li>
         <li>${escapeHtml(task.slots)}</li>
       </ul>
-      <div class="skills" aria-label="必要スキル">${task.skills.map((skill) => `<span class="skill">${escapeHtml(skill)}</span>`).join('')}</div>
+      ${skillRequirement(task, accessLocked)}
       <p class="member-bonus">U-WORD会員になるとさらに <strong class="num">${escapeHtml(task.memberBonus)}</strong></p>
       ${detail}
     </div>
@@ -161,6 +184,10 @@ function taskListScreen(data) {
       <div class="rank-legend">${Object.entries(taskRankDefinitions).reverse().map(([rank, item]) => `<span><b class="rank-badge rank-${rank.toLowerCase()}">ランク ${rank}</b>${escapeHtml(item.label)}</span>`).join('')}</div>
       <p>重要性・難易度・責任の重さを総合して分類しています。ランクAの詳細閲覧と応募はU-WORD会員限定です。</p>
     </aside>
+    <aside class="notice skill-guide" aria-label="必要スキルの見方">
+      <strong>必要スキルの見方</strong>
+      <p>各仕事に、必須スキル・習熟目安・応募できる目安を表示しています。ツール名だけでなく、その仕事を自分で完了できるかで判断してください。</p>
+    </aside>
     <div class="task-grid" id="task-grid">${data.tasks.map((task) => taskCard(task, member)).join('')}</div>
     <p class="empty-state" id="task-empty" hidden>この条件に合うタスクはありません。条件を外して確認してください。</p>`;
 }
@@ -191,9 +218,12 @@ function taskDetailScreen(data) {
             <dt>成果物</dt><dd>${escapeHtml(task.deliverable || `${task.title}の成果物一式`)}</dd>
             <dt>完了条件</dt><dd>${escapeHtml(task.doneWhen || '指定された件数・形式を満たし、人による最終確認が完了していること')}</dd>
             <dt>対象外</dt><dd>${escapeHtml(task.scopeOut || '契約範囲外の追加作業、外部サービスへの無断登録、最終的な法的判断')}</dd>
-            <dt>必要スキル</dt><dd>${task.skills.map(escapeHtml).join('・')}</dd>
           </dl>
         </div>
+      </section>
+      <section aria-labelledby="skills-title">
+        <h2 class="section-title" id="skills-title">必要スキルと応募目安</h2>
+        <div class="paper-card detail-card">${skillRequirement(task)}</div>
       </section>
       <section aria-labelledby="breakdown-title">
         <h2 class="section-title" id="breakdown-title">手取りの内訳</h2>

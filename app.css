@@ -76,6 +76,9 @@ a { color: var(--ink); text-underline-offset: .2em; }
 }
 
 .brand {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
   color: var(--ink);
   font-family: var(--mincho);
   font-size: 1.125rem;
@@ -266,8 +269,9 @@ input:invalid:not(:placeholder-shown), textarea[aria-invalid="true"] { border-co
 .rank-b { color: var(--ink); }
 .rank-c { color: var(--midori); }
 .rank-d { color: var(--usu); }
-.rank-guide { display: grid; gap: .65rem; margin-bottom: 1rem; }
+.rank-guide, .skill-guide { display: grid; gap: .65rem; margin-bottom: 1rem; }
 .rank-guide p, .rank-summary p { margin: 0; }
+.skill-guide p { margin: 0; }
 .rank-legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
 .rank-legend span { display: flex; gap: .4rem; align-items: center; min-width: 0; }
 .member-lock { display: grid; gap: .2rem; padding: .65rem .75rem; border-left: .25rem solid var(--shu); background: color-mix(in srgb, var(--shu) 7%, var(--ply)); }
@@ -296,6 +300,13 @@ input:invalid:not(:placeholder-shown), textarea[aria-invalid="true"] { border-co
 .fact-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem .75rem; }
 .fact-list li { min-width: 0; }
 .urgent { color: var(--shu); font-weight: 700; }
+.skill-requirement { display: grid; gap: .55rem; padding: .75rem; border: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 70%, var(--ply)); }
+.skill-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem; }
+.skill-level { border: 1px solid var(--ink); padding: .15rem .45rem; color: var(--ink); font-size: .6875rem; font-weight: 700; }
+.skill-requirement p { margin: 0; color: var(--usu); font-size: .75rem; }
+.skill-requirement p span { display: block; color: var(--ink); font-weight: 700; }
+.skill-requirement-locked { border-left: .25rem solid var(--shu); }
+.skill-requirement-locked .skill-level { border-color: var(--shu); color: var(--shu); }
 .skills { display: flex; flex-wrap: wrap; gap: .35rem; }
 .skill { border: 1px solid var(--rule); background: var(--paper); padding: .2rem .5rem; font-size: .75rem; }
 .member-bonus { margin: 0; padding: .6rem .75rem; border-left: .25rem solid var(--yamabuki); background: color-mix(in srgb, var(--yamabuki) 11%, var(--ply)); }
