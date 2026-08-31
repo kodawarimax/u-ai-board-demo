@@ -106,7 +106,7 @@ function taskCard(task) {
 }
 
 function taskListScreen(data) {
-  return `${pageHeader('SCREEN 01 / TASKS', '仕事を探す', '手取り・実質時給・工数・締切・必要スキルから選べます。')}
+  return `${pageHeader('SCREEN 01 / TASKS', '仕事を探す', 'AI系でよくある仕事を、難易度・工数・必要スキルと一緒に比較できます。')}
     <section aria-labelledby="task-controls-title">
       <h2 class="section-title" id="task-controls-title">並び順と条件</h2>
       <div class="controls">
@@ -129,6 +129,10 @@ function taskListScreen(data) {
         </div>
       </div>
     </section>
+    <aside class="notice" aria-label="掲載案件について">
+      <strong>AI仕事の参考例</strong>
+      <p>2026年8月31日にクラウドワークス、ランサーズ、ココナラの募集傾向を調査して作成した合成案件です。実在案件の転載ではなく、金額も相場保証ではありません。</p>
+    </aside>
     <div class="task-grid" id="task-grid">${data.tasks.map(taskCard).join('')}</div>
     <p class="empty-state" id="task-empty" hidden>この条件に合うタスクはありません。条件を外して確認してください。</p>`;
 }
