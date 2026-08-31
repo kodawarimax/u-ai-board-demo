@@ -8,8 +8,8 @@ const changePath = /^\/changes\/([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F
 const yen = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 });
 const taskRankDefinitions = {
   A: { label: '高責任', description: '機密・安全・事業成果に関わる仕事', memberOnly: true },
-  B: { label: '専門', description: '専門判断や対外品質が求められる仕事', memberOnly: false },
-  C: { label: '実務', description: '基本判断を伴う制作・運用の仕事', memberOnly: false },
+  B: { label: '専門', description: '専門判断や対外品質が求められる仕事', memberOnly: true },
+  C: { label: '実務', description: '基本判断を伴う制作・運用の仕事', memberOnly: true },
   D: { label: '入門', description: '手順が明確な定型・低リスクの仕事', memberOnly: false },
 };
 const skillLevelDefinitions = {
@@ -78,13 +78,13 @@ const path = (new URLSearchParams(location.search).get('screen') || '/tasks').re
 const navItems = [
   ['/tasks', '仕事を探す'],
   ['/me', 'マイページ'],
-  ['/projects/project-1', '案件管理'],
+  ['/projects', 'プロジェクト'],
   ['/admin', '管理'],
 ];
 
 function isCurrent(href) {
   if (href === '/tasks') return path.startsWith('/tasks') || path === '/';
-  if (href.startsWith('/projects/')) return path.startsWith('/projects/');
+  if (href === '/projects') return path.startsWith('/projects');
   return path === href;
 }
 
@@ -96,10 +96,7 @@ function header(meta) {
         <span class="brand-note">紹介制の仕事を、確かな条件でつなぐ</span>
       </div>
       <nav class="primary-nav" aria-label="主要メニュー">
-        ${navItems.filter(([defaultHref]) => defaultHref !== '/projects/project-1' || meta.projectHref !== null).map(([defaultHref, label]) => {
-          const href = defaultHref === '/projects/project-1' && meta.projectHref ? meta.projectHref : defaultHref;
-          return `<a class="nav-link" href="${routeHref(href)}"${isCurrent(href) ? ' aria-current="page"' : ''}>${label}</a>`;
-        }).join('')}
+        ${navItems.map(([href, label]) => `<a class="nav-link" href="${routeHref(href)}"${isCurrent(href) ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
       </nav>
     </header>
     <aside class="mock-banner" aria-label="ローカルモックの注意">
@@ -182,7 +179,7 @@ function taskListScreen(data) {
     <aside class="notice rank-guide" aria-label="仕事ランクについて">
       <strong>仕事ランクと閲覧条件</strong>
       <div class="rank-legend">${Object.entries(taskRankDefinitions).reverse().map(([rank, item]) => `<span><b class="rank-badge rank-${rank.toLowerCase()}">ランク ${rank}</b>${escapeHtml(item.label)}</span>`).join('')}</div>
-      <p>重要性・難易度・責任の重さを総合して分類しています。ランクAの詳細閲覧と応募はU-WORD会員限定です。</p>
+      <p>重要性・難易度・責任の重さを総合して分類しています。ランクC・B・Aの詳細閲覧と応募はU-WORD会員限定です。ランクDは一般公開しています。</p>
     </aside>
     <aside class="notice skill-guide" aria-label="必要スキルの見方">
       <strong>必要スキルの見方</strong>
@@ -195,7 +192,7 @@ function taskListScreen(data) {
 function taskDetailScreen(data) {
   const task = data.tasks[0];
   return `${pageHeader('SCREEN 02 / TASK DETAIL', task.project, task.title)}
-    <aside class="notice rank-summary"><div class="rank-row">${rankBadge(task)}</div><p>${taskRank(task).memberOnly ? 'U-WORD会員向けの高責任案件です。' : 'すべての利用者が詳細を確認し、応募できます。'}</p></aside>
+    <aside class="notice rank-summary"><div class="rank-row">${rankBadge(task)}</div><p>${taskRank(task).memberOnly ? 'U-WORD会員限定の仕事です。' : 'すべての利用者が詳細を確認し、応募できます。'}</p></aside>
     <div class="section-stack">
       <section aria-labelledby="condition-title">
         <h2 class="section-title" id="condition-title">条件</h2>
@@ -279,11 +276,11 @@ function taskDetailScreen(data) {
 
 function lockedTaskScreen(data) {
   const task = data.tasks[0];
-  return `${pageHeader('MEMBERS ONLY / RANK A', task.project, task.title)}
+  return `${pageHeader(`MEMBERS ONLY / RANK ${task.rank}`, task.project, task.title)}
     <section class="paper-card membership-gate" aria-labelledby="membership-gate-title">
       <div class="rank-row">${rankBadge(task)}</div>
       <h2 id="membership-gate-title">詳細閲覧・応募はU-WORD会員限定です</h2>
-      <p>この仕事は、機密情報・安全性・事業成果への影響が大きく、担当者確認が必要な高責任案件です。</p>
+      <p>ランクC以上の仕事は、担当品質と実績の確認が必要なため、U-WORD会員のみ詳細を確認できます。</p>
       <p class="notice">公開デモでは実会員認証や加入処理を行いません。実運用ではサーバー側で会員資格を確認し、非会員には詳細データ自体を返しません。</p>
       <div class="button-row">
         <a class="button button-secondary" role="button" href="${routeHref('/tasks')}">仕事一覧へ戻る</a>
@@ -371,6 +368,47 @@ function myPageScreen(data) {
 
 function balanceRows(rows) {
   return rows.map((row) => `<div class="balance-row"><span>${escapeHtml(row.label)}</span><strong class="num">${escapeHtml(row.value)}</strong></div>`).join('');
+}
+
+const boardStatuses = [
+  ['todo', '未着手'],
+  ['doing', '進行中'],
+  ['review', '確認待ち'],
+  ['done', '完了'],
+];
+const boardStatusValues = new Set(boardStatuses.map(([value]) => value));
+
+function projectBoardScreen(data) {
+  const board = data.projectBoard;
+  return `${pageHeader('MY PROJECT BOARD', 'プロジェクト管理', `${data.member.name}さん専用の進行管理ボードです。`)}
+    <aside class="notice">
+      <strong>自分のプロジェクトだけを表示</strong>
+      <p>この公開デモでは変更をこのブラウザだけに保存します。本番ではログイン中の利用者IDでサーバー側の閲覧・更新権限を確認します。</p>
+    </aside>
+    <section class="project-board-header" aria-labelledby="board-title">
+      <div>
+        <span class="eyebrow">ACTIVE PROJECT</span>
+        <h2 id="board-title">${escapeHtml(board.title)}</h2>
+        <p>${escapeHtml(board.goal)}</p>
+      </div>
+      <a class="button button-secondary" role="button" href="${routeHref('/projects/project-1')}">契約・配分を見る</a>
+    </section>
+    <form class="paper-card board-task-form" id="board-task-form">
+      <h2>タスクを追加</h2>
+      <div class="board-task-fields">
+        <div class="field"><label for="board-task-title">タスク名</label><input id="board-task-title" name="title" required maxlength="100" placeholder="例：初稿を確認する"></div>
+        <div class="field"><label for="board-task-assignee">担当</label><input id="board-task-assignee" name="assignee" required maxlength="40" value="${escapeHtml(data.member.name)}"></div>
+        <div class="field"><label for="board-task-due">期限</label><input id="board-task-due" name="due" type="date" required></div>
+        <button class="button" type="submit">未着手へ追加</button>
+      </div>
+      <p class="status-message" id="board-task-status" role="status" aria-live="polite"></p>
+    </form>
+    <section class="kanban-board" id="kanban-board" aria-label="プロジェクト進捗">
+      ${boardStatuses.map(([status, label]) => `<section class="kanban-column" data-board-column="${status}" aria-labelledby="column-${status}">
+        <header><h2 id="column-${status}">${label}</h2><span class="board-count" data-board-count="${status}">0件</span></header>
+        <ul data-board-list="${status}"></ul>
+      </section>`).join('')}
+    </section>`;
 }
 
 function projectScreen(data) {
@@ -678,11 +716,85 @@ const screens = {
   '/tasks': taskListScreen,
   '/tasks/task-1': taskDetailScreen,
   '/me': myPageScreen,
+  '/projects': projectBoardScreen,
   '/projects/project-1': projectScreen,
   '/projects/project-1/edit': projectEditorScreen,
   '/changes/change-1': changeScreen,
   '/admin': adminScreen,
 };
+
+function initProjectBoard(data) {
+  const board = document.querySelector('#kanban-board');
+  const form = document.querySelector('#board-task-form');
+  const statusMessage = form.querySelector('#board-task-status');
+  const storageKey = `uai-project-board:${data.member.id || 'demo'}`;
+  let tasks = data.projectBoard.tasks.map((task) => ({ ...task }));
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    if (Array.isArray(saved) && saved.length <= 100 && saved.every((task) => task
+      && ['id', 'title', 'assignee', 'due', 'status'].every((key) => typeof task[key] === 'string')
+      && task.id.length <= 100 && task.title.length <= 100 && task.assignee.length <= 40
+      && /^\d{4}-\d{2}-\d{2}$/.test(task.due)
+      && boardStatusValues.has(task.status))) tasks = saved;
+  } catch {
+    try { localStorage.removeItem(storageKey); } catch {}
+  }
+
+  const save = () => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(tasks));
+      return true;
+    } catch {
+      statusMessage.textContent = 'このブラウザに保存できませんでした。空き容量と設定を確認してください。';
+      return false;
+    }
+  };
+  const render = () => {
+    boardStatuses.forEach(([status]) => {
+      const items = tasks.filter((task) => task.status === status);
+      board.querySelector(`[data-board-count="${status}"]`).textContent = `${items.length}件`;
+      board.querySelector(`[data-board-list="${status}"]`).innerHTML = items.map((task) => `<li class="kanban-task" data-board-task="${escapeHtml(task.id)}">
+        <strong>${escapeHtml(task.title)}</strong>
+        <span>担当：${escapeHtml(task.assignee)}</span>
+        <span>期限：${escapeHtml(task.due)}</span>
+        <label>進捗
+          <select data-board-status aria-label="${escapeHtml(task.title)}の進捗">
+            ${boardStatuses.map(([value, label]) => `<option value="${value}"${value === task.status ? ' selected' : ''}>${label}</option>`).join('')}
+          </select>
+        </label>
+      </li>`).join('');
+    });
+  };
+
+  board.addEventListener('change', (event) => {
+    const select = event.target.closest('[data-board-status]');
+    if (!select) return;
+    const task = tasks.find((item) => item.id === select.closest('[data-board-task]').dataset.boardTask);
+    if (!task) return;
+    task.status = select.value;
+    if (save()) statusMessage.textContent = '進捗を保存しました。';
+    render();
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form.checkValidity()) return form.reportValidity();
+    const values = new FormData(form);
+    const title = values.get('title').trim();
+    const assignee = values.get('assignee').trim();
+    if (!title || !assignee) {
+      statusMessage.textContent = 'タスク名と担当を入力してください。';
+      return;
+    }
+    tasks.push({ id: crypto.randomUUID(), title, assignee, due: values.get('due'), status: 'todo' });
+    const saved = save();
+    render();
+    form.elements.title.value = '';
+    form.elements.due.value = '';
+    if (saved) statusMessage.textContent = '未着手にタスクを追加しました。';
+    form.elements.title.focus();
+  });
+  render();
+}
 
 function initTaskList(data) {
   const grid = document.querySelector('#task-grid');
@@ -1736,6 +1848,7 @@ async function start() {
 
   if (path === '/tasks') initTaskList(data);
   if (path === '/me') initMyPage({ connected });
+  if (path === '/projects') initProjectBoard(data);
   if (screen === taskDetailScreen) initTaskDetail({ connected, taskId: detailMatch?.[1] });
   if (path === '/projects/project-1' || projectMatch) initProject({
     connected, projectId: data.project.id, changeDraft: data.project.changeDraft,
