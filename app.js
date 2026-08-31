@@ -398,16 +398,40 @@ function projectBoardScreen(data) {
       <div class="board-task-fields">
         <div class="field"><label for="board-task-title">タスク名</label><input id="board-task-title" name="title" required maxlength="100" placeholder="例：初稿を確認する"></div>
         <div class="field"><label for="board-task-assignee">担当</label><input id="board-task-assignee" name="assignee" required maxlength="40" value="${escapeHtml(data.member.name)}"></div>
+        <div class="field"><label for="board-task-start">開始日</label><input id="board-task-start" name="start" type="date" required></div>
         <div class="field"><label for="board-task-due">期限</label><input id="board-task-due" name="due" type="date" required></div>
         <button class="button" type="submit">未着手へ追加</button>
       </div>
       <p class="status-message" id="board-task-status" role="status" aria-live="polite"></p>
     </form>
-    <section class="kanban-board" id="kanban-board" aria-label="プロジェクト進捗">
-      ${boardStatuses.map(([status, label]) => `<section class="kanban-column" data-board-column="${status}" aria-labelledby="column-${status}">
-        <header><h2 id="column-${status}">${label}</h2><span class="board-count" data-board-count="${status}">0件</span></header>
-        <ul data-board-list="${status}"></ul>
-      </section>`).join('')}
+    <div class="project-view-switcher" role="tablist" aria-label="プロジェクトの表示方法">
+      <button type="button" role="tab" id="view-board-tab" aria-selected="true" aria-controls="project-view-board" data-project-view="board">ボード</button>
+      <button type="button" role="tab" id="view-calendar-tab" aria-selected="false" aria-controls="project-view-calendar" data-project-view="calendar">カレンダー</button>
+      <button type="button" role="tab" id="view-gantt-tab" aria-selected="false" aria-controls="project-view-gantt" data-project-view="gantt">ガントチャート</button>
+    </div>
+    <section class="project-view" id="project-view-board" role="tabpanel" aria-labelledby="view-board-tab" data-project-view-panel="board">
+      <div class="kanban-board" id="kanban-board" aria-label="プロジェクト進捗">
+        ${boardStatuses.map(([status, label]) => `<section class="kanban-column" data-board-column="${status}" aria-labelledby="column-${status}">
+          <header><h2 id="column-${status}">${label}</h2><span class="board-count" data-board-count="${status}">0件</span></header>
+          <ul data-board-list="${status}"></ul>
+        </section>`).join('')}
+      </div>
+    </section>
+    <section class="project-view" id="project-view-calendar" role="tabpanel" aria-labelledby="view-calendar-tab" data-project-view-panel="calendar" hidden>
+      <header class="calendar-toolbar">
+        <button class="button button-secondary" type="button" data-calendar-move="-1" aria-label="前の月">前月</button>
+        <h2 id="calendar-title" aria-live="polite"></h2>
+        <button class="button button-secondary" type="button" data-calendar-move="1" aria-label="次の月">次月</button>
+      </header>
+      <div class="calendar-scroll" tabindex="0" aria-label="月間カレンダー。横にスクロールできます">
+        <div class="project-calendar" id="project-calendar"></div>
+      </div>
+    </section>
+    <section class="project-view" id="project-view-gantt" role="tabpanel" aria-labelledby="view-gantt-tab" data-project-view-panel="gantt" hidden>
+      <p class="gantt-summary" id="gantt-summary"></p>
+      <div class="gantt-scroll" tabindex="0" aria-label="ガントチャート。横にスクロールできます">
+        <div class="gantt-chart" id="gantt-chart"></div>
+      </div>
     </section>`;
 }
 
@@ -727,18 +751,47 @@ function initProjectBoard(data) {
   const board = document.querySelector('#kanban-board');
   const form = document.querySelector('#board-task-form');
   const statusMessage = form.querySelector('#board-task-status');
+  const calendar = document.querySelector('#project-calendar');
+  const gantt = document.querySelector('#gantt-chart');
+  const viewSwitcher = document.querySelector('.project-view-switcher');
   const storageKey = `uai-project-board:${data.member.id || 'demo'}`;
-  let tasks = data.projectBoard.tasks.map((task) => ({ ...task }));
+  let tasks = data.projectBoard.tasks.map((task) => ({ ...task, start: task.start || task.due }));
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  const dayMs = 86_400_000;
+  const dayNumber = (value) => {
+    const [year, month, day] = value.split('-').map(Number);
+    return Date.UTC(year, month - 1, day) / dayMs;
+  };
+  const dateFromDay = (value) => new Date(value * dayMs);
+  const shortDate = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+  const isIsoDate = (value) => {
+    if (!datePattern.test(value)) return false;
+    const parsed = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+  };
+  const taskIsValid = (task) => task
+    && ['id', 'title', 'assignee', 'start', 'due', 'status'].every((key) => typeof task[key] === 'string')
+    && task.id.length <= 100 && task.title.length <= 100 && task.assignee.length <= 40
+    && isIsoDate(task.start) && isIsoDate(task.due) && task.start <= task.due
+    && boardStatusValues.has(task.status);
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    if (Array.isArray(saved) && saved.length <= 100 && saved.every((task) => task
-      && ['id', 'title', 'assignee', 'due', 'status'].every((key) => typeof task[key] === 'string')
-      && task.id.length <= 100 && task.title.length <= 100 && task.assignee.length <= 40
-      && /^\d{4}-\d{2}-\d{2}$/.test(task.due)
-      && boardStatusValues.has(task.status))) tasks = saved;
+    if (Array.isArray(saved) && saved.length <= 100) {
+      const migrated = saved.map((task) => ({ ...task, start: task?.start || task?.due }));
+      if (migrated.every(taskIsValid)) tasks = migrated;
+    }
   } catch {
     try { localStorage.removeItem(storageKey); } catch {}
   }
+  let calendarMonth = (() => {
+    const value = [...tasks].sort((a, b) => a.start.localeCompare(b.start))[0]?.start;
+    if (value) {
+      const [year, month] = value.split('-').map(Number);
+      return new Date(year, month - 1, 1);
+    }
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  })();
 
   const save = () => {
     try {
@@ -749,14 +802,14 @@ function initProjectBoard(data) {
       return false;
     }
   };
-  const render = () => {
+  const renderBoard = () => {
     boardStatuses.forEach(([status]) => {
       const items = tasks.filter((task) => task.status === status);
       board.querySelector(`[data-board-count="${status}"]`).textContent = `${items.length}件`;
       board.querySelector(`[data-board-list="${status}"]`).innerHTML = items.map((task) => `<li class="kanban-task" data-board-task="${escapeHtml(task.id)}">
         <strong>${escapeHtml(task.title)}</strong>
         <span>担当：${escapeHtml(task.assignee)}</span>
-        <span>期限：${escapeHtml(task.due)}</span>
+        <span>期間：${escapeHtml(task.start)}〜${escapeHtml(task.due)}</span>
         <label>進捗
           <select data-board-status aria-label="${escapeHtml(task.title)}の進捗">
             ${boardStatuses.map(([value, label]) => `<option value="${value}"${value === task.status ? ' selected' : ''}>${label}</option>`).join('')}
@@ -765,6 +818,82 @@ function initProjectBoard(data) {
       </li>`).join('');
     });
   };
+  const renderCalendar = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const first = new Date(year, month, 1);
+    const cells = Math.ceil((first.getDay() + new Date(year, month + 1, 0).getDate()) / 7) * 7;
+    document.querySelector('#calendar-title').textContent = `${year}年${month + 1}月`;
+    const weekdays = ['日', '月', '火', '水', '木', '金', '土'].map((day) => `<div class="calendar-weekday">${day}</div>`).join('');
+    const days = Array.from({ length: cells }, (_, index) => {
+      const date = new Date(year, month, index - first.getDay() + 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const serial = dayNumber(key);
+      const items = tasks.filter((task) => dayNumber(task.start) <= serial && serial <= dayNumber(task.due));
+      return `<div class="calendar-day${date.getMonth() === month ? '' : ' calendar-day-outside'}">
+        <time datetime="${key}">${date.getDate()}</time>
+        <ul>${items.map((task) => `<li class="status-${task.status}" title="${escapeHtml(task.start)}〜${escapeHtml(task.due)}">${escapeHtml(task.title)}</li>`).join('')}</ul>
+      </div>`;
+    }).join('');
+    calendar.innerHTML = weekdays + days;
+  };
+  const renderGantt = () => {
+    if (!tasks.length) {
+      gantt.innerHTML = '<p class="notice">表示するタスクがありません。</p>';
+      return;
+    }
+    const startDay = Math.min(...tasks.map((task) => dayNumber(task.start)));
+    const endDay = Math.max(...tasks.map((task) => dayNumber(task.due)));
+    const totalDays = endDay - startDay + 1;
+    const markerStep = Math.max(1, Math.ceil(totalDays / 10));
+    const markers = Array.from({ length: Math.ceil(totalDays / markerStep) }, (_, index) => index * markerStep)
+      .map((offset) => `<span style="left:${offset / totalDays * 100}%">${shortDate.format(dateFromDay(startDay + offset))}</span>`).join('');
+    document.querySelector('#gantt-summary').textContent = `${shortDate.format(dateFromDay(startDay))}〜${shortDate.format(dateFromDay(endDay))}・全${tasks.length}タスク`;
+    gantt.style.minWidth = `${Math.min(2400, Math.max(720, totalDays * 32))}px`;
+    gantt.innerHTML = `<div class="gantt-axis"><span>タスク</span><div>${markers}</div></div>${tasks.map((task) => {
+      const offset = dayNumber(task.start) - startDay;
+      const duration = dayNumber(task.due) - dayNumber(task.start) + 1;
+      return `<div class="gantt-row">
+        <div class="gantt-label"><strong>${escapeHtml(task.title)}</strong><span>${escapeHtml(task.assignee)}</span></div>
+        <div class="gantt-track"><span class="gantt-bar status-${task.status}" role="img" aria-label="${escapeHtml(task.title)}、${escapeHtml(task.start)}から${escapeHtml(task.due)}" style="left:${offset / totalDays * 100}%;width:${duration / totalDays * 100}%"></span></div>
+      </div>`;
+    }).join('')}`;
+  };
+  const render = () => {
+    renderBoard();
+    renderCalendar();
+    renderGantt();
+  };
+
+  const setView = (view, focus = false) => {
+    viewSwitcher.querySelectorAll('[data-project-view]').forEach((button) => {
+      const selected = button.dataset.projectView === view;
+      button.setAttribute('aria-selected', String(selected));
+      button.tabIndex = selected ? 0 : -1;
+      if (selected && focus) button.focus();
+    });
+    document.querySelectorAll('[data-project-view-panel]').forEach((panel) => {
+      panel.hidden = panel.dataset.projectViewPanel !== view;
+    });
+  };
+  viewSwitcher.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-project-view]');
+    if (button) setView(button.dataset.projectView);
+  });
+  viewSwitcher.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const buttons = [...viewSwitcher.querySelectorAll('[data-project-view]')];
+    const index = buttons.indexOf(document.activeElement);
+    const next = buttons[(index + (event.key === 'ArrowRight' ? 1 : buttons.length - 1)) % buttons.length];
+    setView(next.dataset.projectView, true);
+  });
+  document.querySelector('.calendar-toolbar').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-calendar-move]');
+    if (!button) return;
+    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + Number(button.dataset.calendarMove), 1);
+    renderCalendar();
+  });
 
   board.addEventListener('change', (event) => {
     const select = event.target.closest('[data-board-status]');
@@ -785,14 +914,22 @@ function initProjectBoard(data) {
       statusMessage.textContent = 'タスク名と担当を入力してください。';
       return;
     }
-    tasks.push({ id: crypto.randomUUID(), title, assignee, due: values.get('due'), status: 'todo' });
+    const start = values.get('start');
+    const due = values.get('due');
+    if (start > due) {
+      statusMessage.textContent = '期限は開始日以降にしてください。';
+      return;
+    }
+    tasks.push({ id: crypto.randomUUID(), title, assignee, start, due, status: 'todo' });
     const saved = save();
     render();
     form.elements.title.value = '';
+    form.elements.start.value = '';
     form.elements.due.value = '';
     if (saved) statusMessage.textContent = '未着手にタスクを追加しました。';
     form.elements.title.focus();
   });
+  setView('board');
   render();
 }
 

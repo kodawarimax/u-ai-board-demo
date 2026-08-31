@@ -294,7 +294,10 @@ input:invalid:not(:placeholder-shown), textarea[aria-invalid="true"] { border-co
 }
 .project-board-header p { margin: .35rem 0 0; }
 .board-task-form { display: grid; gap: .75rem; margin-bottom: 1rem; padding: 1rem; }
-.board-task-fields { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: .75rem; align-items: end; }
+.board-task-fields { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: .75rem; align-items: end; }
+.project-view-switcher { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .25rem; margin-bottom: 1rem; padding: .25rem; border: 1px solid var(--rule); background: var(--ply); }
+.project-view-switcher button { min-height: 2.75rem; padding: .55rem; border: 0; background: transparent; color: var(--usu); font-weight: 700; }
+.project-view-switcher button[aria-selected="true"] { background: var(--ink); color: var(--ply); }
 .kanban-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; align-items: start; }
 .kanban-column { min-width: 0; border: 1px solid var(--rule); background: var(--ply); }
 .kanban-column > header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .75rem; border-bottom: 2px solid var(--ink); }
@@ -304,6 +307,34 @@ input:invalid:not(:placeholder-shown), textarea[aria-invalid="true"] { border-co
 .kanban-task { display: grid; gap: .4rem; padding: .75rem; border: 1px solid var(--rule); background: var(--paper); }
 .kanban-task > span { color: var(--usu); font-size: .75rem; }
 .kanban-task label { display: grid; gap: .25rem; font-size: .75rem; font-weight: 700; }
+.calendar-toolbar { display: grid; grid-template-columns: auto 1fr auto; gap: .75rem; align-items: center; margin-bottom: .75rem; }
+.calendar-toolbar h2 { text-align: center; }
+.calendar-scroll, .gantt-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--rule); background: var(--ply); }
+.project-calendar { display: grid; grid-template-columns: repeat(7, minmax(6.25rem, 1fr)); min-width: 44rem; }
+.calendar-weekday { padding: .5rem; border-bottom: 2px solid var(--ink); color: var(--usu); font-size: .75rem; font-weight: 700; text-align: center; }
+.calendar-day { min-height: 8rem; padding: .45rem; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.calendar-day:nth-child(7n) { border-right: 0; }
+.calendar-day > time { display: block; margin-bottom: .35rem; font-weight: 700; }
+.calendar-day ul { display: grid; gap: .25rem; margin: 0; padding: 0; list-style: none; }
+.calendar-day li { overflow: hidden; padding: .2rem .35rem; border-left: .2rem solid currentColor; background: var(--paper); font-size: .6875rem; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-day-outside { color: var(--usu); opacity: .55; }
+.status-todo { color: var(--usu); }
+.status-doing { color: var(--ink); }
+.status-review { color: var(--shu); }
+.status-done { color: var(--midori); }
+.gantt-summary { margin: 0 0 .75rem; color: var(--usu); font-weight: 700; }
+.gantt-chart { background: var(--ply); }
+.gantt-axis, .gantt-row { display: grid; grid-template-columns: 13rem minmax(0, 1fr); }
+.gantt-axis { min-height: 3rem; border-bottom: 2px solid var(--ink); color: var(--usu); font-size: .6875rem; font-weight: 700; }
+.gantt-axis > span, .gantt-label { padding: .65rem .75rem; border-right: 1px solid var(--rule); }
+.gantt-axis > div, .gantt-track { position: relative; }
+.gantt-axis > div span { position: absolute; top: .65rem; transform: translateX(-50%); white-space: nowrap; }
+.gantt-row { min-height: 4.25rem; border-bottom: 1px solid var(--rule); }
+.gantt-label { display: grid; align-content: center; gap: .1rem; }
+.gantt-label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gantt-label span { color: var(--usu); font-size: .6875rem; }
+.gantt-track { background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), color-mix(in srgb, var(--rule) 65%, transparent) calc(10% - 1px) 10%); }
+.gantt-bar { position: absolute; top: 50%; min-width: .5rem; height: 1.5rem; transform: translateY(-50%); border: 1px solid currentColor; background: currentColor; opacity: .78; }
 
 .money-pair {
   display: grid;
@@ -466,6 +497,7 @@ dialog::backdrop { background: color-mix(in srgb, var(--sumi) 58%, transparent);
   .rank-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-board-header { align-items: stretch; flex-direction: column; }
   .board-task-fields, .kanban-board { grid-template-columns: minmax(0, 1fr); }
+  .project-view-switcher button { padding-inline: .25rem; font-size: .75rem; }
 }
 
 @media (max-width: 24rem) {

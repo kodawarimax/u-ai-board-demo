@@ -25,5 +25,6 @@ assert.ok(data.member.id);
 assert.ok(data.projectBoard.tasks.length >= 4);
 assert.equal(new Set(data.projectBoard.tasks.map(({ id }) => id)).size, data.projectBoard.tasks.length);
 assert.ok(data.projectBoard.tasks.every(({ status }) => ['todo', 'doing', 'review', 'done'].includes(status)));
+assert.ok(data.projectBoard.tasks.every(({ start, due }) => /^\d{4}-\d{2}-\d{2}$/.test(start) && start <= due));
 
 console.log('rank gate fixtures: OK');

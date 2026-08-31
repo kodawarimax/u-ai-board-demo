@@ -2,7 +2,7 @@
   "meta": {
     "label": "PUBLIC DEMO / 合成データ",
     "notice": "この画面は公開デモです。顧客・会員の実データ、外部API、実決済、会員資格の変更は使用しません。",
-    "updatedAt": "2026年8月31日 18:45 JST"
+    "updatedAt": "2026年8月31日 19:21 JST"
   },
   "taskOrders": {
     "hourly": ["task-30", "task-12", "task-2", "task-1", "task-11", "task-28", "task-3", "task-29", "task-35", "task-23", "task-31", "task-32", "task-33", "task-37", "task-9", "task-13", "task-21", "task-22", "task-24", "task-26", "task-34", "task-36", "task-39", "task-40", "task-27", "task-14", "task-17", "task-18", "task-19", "task-20", "task-25", "task-38", "task-10", "task-16", "task-6", "task-15", "task-4", "task-8", "task-5", "task-7"],
@@ -687,10 +687,10 @@
     "title": "地域研修レポート整備（架空案件）",
     "goal": "9月12日までに、確認済みの研修レポート一式を完成させる",
     "tasks": [
-      {"id": "board-task-1", "title": "元データの匿名化を確認", "assignee": "テスト会員", "due": "2026-09-02", "status": "done"},
-      {"id": "board-task-2", "title": "受講記録を表へ整理", "assignee": "テスト会員", "due": "2026-09-05", "status": "doing"},
-      {"id": "board-task-3", "title": "報告書の初稿を作成", "assignee": "テスト会員", "due": "2026-09-08", "status": "todo"},
-      {"id": "board-task-4", "title": "担当者レビュー", "assignee": "依頼担当者", "due": "2026-09-10", "status": "review"}
+      {"id": "board-task-1", "title": "元データの匿名化を確認", "assignee": "テスト会員", "start": "2026-09-01", "due": "2026-09-02", "status": "done"},
+      {"id": "board-task-2", "title": "受講記録を表へ整理", "assignee": "テスト会員", "start": "2026-09-02", "due": "2026-09-05", "status": "doing"},
+      {"id": "board-task-3", "title": "報告書の初稿を作成", "assignee": "テスト会員", "start": "2026-09-05", "due": "2026-09-08", "status": "todo"},
+      {"id": "board-task-4", "title": "担当者レビュー", "assignee": "依頼担当者", "start": "2026-09-08", "due": "2026-09-10", "status": "review"}
     ]
   },
   "project": {

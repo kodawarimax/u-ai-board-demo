@@ -28,12 +28,29 @@ const screen = (path) => `${root}?screen=${encodeURIComponent(path)}`;
   await page.locator('.kanban-column').first().waitFor();
   assert.equal(await page.locator('.kanban-column').count(), 4);
   assert.equal(await page.locator('.kanban-task').count(), 4);
+  assert.equal(await page.getByRole('tab').count(), 3);
+  await page.getByRole('tab', { name: 'カレンダー' }).click();
+  assert.equal(await page.locator('#calendar-title').textContent(), '2026年9月');
+  assert.ok(await page.locator('.calendar-day li').count() > 4);
+  await page.locator('[data-calendar-move="1"]').click();
+  assert.equal(await page.locator('#calendar-title').textContent(), '2026年10月');
+  await page.getByRole('tab', { name: 'ガントチャート' }).click();
+  assert.equal(await page.locator('.gantt-row').count(), 4);
+  assert.equal(await page.locator('.gantt-bar').count(), 4);
+  await page.getByRole('tab', { name: 'ボード' }).click();
   await page.locator('#board-task-title').fill('   ');
+  await page.locator('#board-task-start').fill('2026-09-29');
   await page.locator('#board-task-due').fill('2026-09-30');
+  await page.locator('#board-task-form button').click();
+  assert.equal(await page.locator('.kanban-task').count(), 4);
+  await page.locator('#board-task-title').fill('日付エラー');
+  await page.locator('#board-task-start').fill('2026-09-30');
+  await page.locator('#board-task-due').fill('2026-09-29');
   await page.locator('#board-task-form button').click();
   assert.equal(await page.locator('.kanban-task').count(), 4);
   await page.locator('#board-task-title').fill('<img src=x onerror=alert(1)>');
   await page.locator('#board-task-assignee').fill('テスト担当');
+  await page.locator('#board-task-start').fill('2026-09-29');
   await page.locator('#board-task-due').fill('2026-09-30');
   await page.locator('#board-task-form button').click();
   assert.equal(await page.locator('.kanban-task').count(), 5);
@@ -48,6 +65,9 @@ const screen = (path) => `${root}?screen=${encodeURIComponent(path)}`;
   await page.reload();
   await page.locator('.kanban-column').first().waitFor();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.getByRole('tab', { name: 'カレンダー' }).click();
+  await page.screenshot({ path: '/tmp/u-ai-project-calendar-desktop.png', fullPage: true });
+  await page.getByRole('tab', { name: 'ボード' }).click();
   await page.screenshot({ path: '/tmp/u-ai-project-board-desktop.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
@@ -57,7 +77,25 @@ const screen = (path) => `${root}?screen=${encodeURIComponent(path)}`;
     .filter((item) => item.getClientRects().length)
     .filter((item) => item.getBoundingClientRect().height < 44)
     .map((item) => `${item.tagName}:${item.id || item.className}`)), []);
+  await page.getByRole('tab', { name: 'ガントチャート' }).click();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: '/tmp/u-ai-project-gantt-mobile.png', fullPage: true });
+  await page.getByRole('tab', { name: 'ボード' }).click();
   await page.screenshot({ path: '/tmp/u-ai-project-board-mobile.png', fullPage: true });
+
+  await page.evaluate(() => localStorage.setItem('uai-project-board:member-demo-1', JSON.stringify([
+    { id: 'old-task', title: '旧保存データ', assignee: 'テスト会員', due: '2026-09-12', status: 'todo' },
+  ])));
+  await page.reload();
+  await page.locator('.kanban-task').first().waitFor();
+  assert.match(await page.locator('.kanban-task').textContent(), /2026-09-12〜2026-09-12/);
+  await page.evaluate(() => localStorage.setItem('uai-project-board:member-demo-1', JSON.stringify(Array.from({ length: 101 }, (_, index) => ({
+    id: `task-${index}`, title: '上限確認', assignee: 'テスト会員', due: '2026-09-12', status: 'todo',
+  })))));
+  await page.reload();
+  await page.locator('.kanban-task').first().waitFor();
+  assert.equal(await page.locator('.kanban-task').count(), 4);
+  await page.evaluate(() => localStorage.clear());
 
   const blockedStoragePage = await browser.newPage();
   await blockedStoragePage.addInitScript(() => {
