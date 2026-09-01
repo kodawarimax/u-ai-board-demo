@@ -28,6 +28,15 @@ const screen = (path) => `${root}?screen=${encodeURIComponent(path)}`;
   await page.goto(screen('/tasks/task-4'));
   assert.equal(await page.locator('.ai-policy').count(), 0);
 
+  await page.goto(screen('/contact'));
+  await page.locator('#contact-form').waitFor();
+  await page.locator('#contact-category').selectOption({ label: '会員登録・ログイン' });
+  await page.locator('#contact-name').fill('デモ利用者');
+  await page.locator('#contact-email').fill('demo@example.com');
+  await page.locator('#contact-message').fill('ログインについて確認したいです。');
+  await page.locator('#contact-form button').click();
+  assert.match(await page.locator('#contact-status').textContent(), /送信・保存されません/);
+
   await page.goto(screen('/me'));
   await page.locator('.trust-passport').waitFor();
   assert.ok(await page.locator('.trust-certification').count() >= 3);

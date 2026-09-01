@@ -132,6 +132,14 @@ function pageHeader(eyebrow, title, description = '') {
   </header>`;
 }
 
+function demoFooter() {
+  return `<footer class="site-footer">
+    <nav class="footer-links" aria-label="サポート">
+      <a href="${routeHref('/contact')}">お問い合わせ</a>
+    </nav>
+  </footer>`;
+}
+
 function taskCard(task, member) {
   const flags = Array.isArray(task.flags)
     ? task.flags.filter((flag) => allowedTaskFlags.has(flag)).join(' ')
@@ -823,6 +831,38 @@ function adminScreen(data) {
     <p class="footer-note">この画面から実決済・会員資格変更・外部同期は実行できません。</p>`;
 }
 
+function contactScreen() {
+  return `${pageHeader('SCREEN 08 / CONTACT', 'お問い合わせ', 'U-workについてのご質問、会員・案件に関するご相談を受け付けます。')}
+    <section class="contact-layout" aria-labelledby="contact-guide-title">
+      <div class="paper-card contact-guide">
+        <h2 id="contact-guide-title">送信前にご確認ください</h2>
+        <ul class="contact-list">
+          <li>案件の機密情報、パスワード、本人確認書類は入力しないでください。</li>
+          <li>案件の内容は、案件画面またはプロジェクト内の相談機能もご利用ください。</li>
+          <li>緊急の安全上の問題は、案件管理者へ直接連絡してください。</li>
+        </ul>
+      </div>
+      <form class="paper-card contact-form" id="contact-form">
+        <div class="field"><label for="contact-category">お問い合わせ種別</label>
+          <select id="contact-category" name="category" required>
+            <option value="">選択してください</option>
+            <option>会員登録・ログイン</option>
+            <option>案件の掲載・応募</option>
+            <option>プロジェクト管理</option>
+            <option>安全・権利侵害の申告</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="field"><label for="contact-name">お名前</label><input id="contact-name" name="name" autocomplete="name" required maxlength="100"></div>
+        <div class="field"><label for="contact-email">返信先メールアドレス</label><input id="contact-email" name="email" type="email" autocomplete="email" required maxlength="254"></div>
+        <div class="field"><label for="contact-message">お問い合わせ内容</label><textarea id="contact-message" name="message" required maxlength="4000" placeholder="状況と、確認したいことをお書きください"></textarea></div>
+        <p class="microcopy">送信により、入力内容を問い合わせ対応のために取り扱うことに同意するものとします。公開前のデモでは内容を送信・保存しません。</p>
+        <button class="button" type="submit">内容を確認する</button>
+        <p class="status-message" id="contact-status" role="status" aria-live="polite" tabindex="-1"></p>
+      </form>
+    </section>`;
+}
+
 const screens = {
   '/tasks': taskListScreen,
   '/tasks/task-1': taskDetailScreen,
@@ -832,7 +872,19 @@ const screens = {
   '/projects/project-1/edit': projectEditorScreen,
   '/changes/change-1': changeScreen,
   '/admin': adminScreen,
+  '/contact': contactScreen,
 };
+
+function initContact() {
+  const form = document.querySelector('#contact-form');
+  const status = document.querySelector('#contact-status');
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+    status.textContent = '内容を確認しました。公開デモでは送信・保存されません。';
+    status.focus();
+  });
+}
 
 function initProjectBoard(data) {
   const board = document.querySelector('#kanban-board');
@@ -2153,7 +2205,7 @@ async function start() {
     return;
   }
 
-  shell.innerHTML = `${header(data.meta)}<main class="page" id="main">${screen(data)}</main>`;
+  shell.innerHTML = `${header(data.meta)}<main class="page" id="main">${screen(data)}</main>${demoFooter()}`;
   shell.removeAttribute('aria-busy');
   document.title = `${document.querySelector('h1').textContent} | U-work${connected ? '' : ' 公開デモ'}`;
 
@@ -2169,6 +2221,7 @@ async function start() {
   if (path === '/projects/new') initConnectedProjectEditor();
   if (path === '/changes/change-1' || changeMatch) initChange({ connected, changeId: changeMatch?.[1] });
   if (path === '/admin') initAdmin({ connected });
+  if (path === '/contact') initContact();
 }
 
 start().catch(() => {

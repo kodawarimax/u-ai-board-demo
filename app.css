@@ -501,13 +501,29 @@ dialog::backdrop { background: color-mix(in srgb, var(--sumi) 58%, transparent);
 .diagnostic p { margin: 0; }
 
 .footer-note { margin-top: 2rem; color: var(--usu); font-size: .75rem; text-align: center; }
+.site-footer { border-top: 1px solid var(--rule); background: var(--ply); }
+.footer-links {
+  display: flex;
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .5rem 1.5rem;
+  padding-block: 1rem;
+}
+.footer-links a { display: inline-grid; min-height: 2.75rem; place-items: center; }
+
+.contact-layout { display: grid; grid-template-columns: minmax(15rem, .8fr) minmax(0, 1.2fr); gap: 1rem; align-items: start; }
+.contact-guide, .contact-form { display: grid; gap: 1rem; padding: 1.25rem; }
+.contact-list { display: grid; gap: .75rem; margin: 0; padding-left: 1.25rem; }
+.contact-form .microcopy { margin: 0; }
 
 @media (max-width: 44rem) {
   body { background: var(--paper); }
   .brand-row { align-items: start; flex-direction: column; justify-content: center; padding-block: .65rem; }
   .brand-note { display: none; }
   .page { padding-block: 1.25rem 6rem; }
-  .metric-grid, .two-column, .admin-grid, .trust-status-grid, .workroom-grid, .workroom-resource-form { grid-template-columns: minmax(0, 1fr); }
+  .metric-grid, .two-column, .admin-grid, .contact-layout, .trust-status-grid, .workroom-grid, .workroom-resource-form { grid-template-columns: minmax(0, 1fr); }
   .trust-certification, .eligibility-list li, .workroom-message, .workroom-resource { grid-template-columns: minmax(0, 1fr); }
   .workroom-wide { grid-column: auto; }
   .definition-list { grid-template-columns: minmax(0, 1fr); }
