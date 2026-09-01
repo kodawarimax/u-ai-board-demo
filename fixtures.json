@@ -61,6 +61,13 @@
       "deadline": "9月5日",
       "urgent": false,
       "skills": ["校正", "未経験可"],
+      "aiPolicy": {
+        "use": "文章比較・候補抽出の補助に利用可",
+        "tools": ["契約済みAI", "表計算ソフト"],
+        "data": "氏名・連絡先・未公開資料は外部AIへ入力禁止",
+        "humanReview": "修正箇所は作業者が原文と照合し、全件を人による確認",
+        "disclosure": "AIを使った工程と最終確認者を作業記録へ記載"
+      },
       "applications": "応募 4件",
       "slots": "残り 1枠",
       "memberBonus": "+¥1,940",
@@ -142,6 +149,13 @@
       "deadline": "9月12日",
       "urgent": false,
       "skills": ["データ収集", "表計算", "分類"],
+      "aiPolicy": {
+        "use": "重複候補の抽出と分類候補の作成に利用可",
+        "tools": ["契約済みAI", "表計算ソフト"],
+        "data": "ログイン情報・個人情報・有料コンテンツは外部AIへ入力禁止",
+        "humanReview": "URLの到達確認と分類は作業者が全件を人による確認",
+        "disclosure": "AIで抽出した候補数と除外理由を納品メモへ記載"
+      },
       "applications": "応募 18件",
       "slots": "残り 4枠",
       "memberBonus": "+¥2,000",
@@ -223,6 +237,13 @@
       "deadline": "9月6日",
       "urgent": false,
       "skills": ["OCR", "入力確認", "表計算"],
+      "aiPolicy": {
+        "use": "OCR結果の誤り候補検出にのみ利用可",
+        "tools": ["指定OCR", "契約済みAI"],
+        "data": "申込者の個人情報は外部AIへ入力禁止。匿名化済み文字列のみ利用",
+        "humanReview": "原本画像との照合を作業者が全件を人による確認",
+        "disclosure": "修正件数と確認漏れ防止の方法を作業記録へ記載"
+      },
       "applications": "応募 11件",
       "slots": "残り 3枠",
       "memberBonus": "+¥1,800",
@@ -256,6 +277,13 @@
       "deadline": "9月9日",
       "urgent": false,
       "skills": ["データ分類", "文章理解", "表計算"],
+      "aiPolicy": {
+        "use": "分類候補とタグ候補の作成に利用可",
+        "tools": ["契約済みAI", "表計算ソフト"],
+        "data": "回答者を特定できる情報と未公開の商品情報は外部AIへ入力禁止",
+        "humanReview": "分類基準への適合と境界事例は作業者が全件を人による確認",
+        "disclosure": "AI利用範囲、分類基準、手動修正件数を納品メモへ記載"
+      },
       "applications": "応募 14件",
       "slots": "残り 5枠",
       "memberBonus": "+¥1,440",
@@ -667,6 +695,26 @@
     "name": "テスト会員",
     "membership": "U-WORD 未加入（公開デモ）",
     "isUwordMember": false,
+    "trust": {
+      "identity": "本人確認済み（合成データ）",
+      "nda": "秘密保持の確認済み（合成データ）",
+      "performance": [
+        {"label": "完了案件", "value": "12件"},
+        {"label": "期限内完了", "value": "92%"},
+        {"label": "完了率", "value": "96%"},
+        {"label": "評価", "value": "4.8 / 5"}
+      ],
+      "certifications": [
+        {"name": "AI基礎", "status": "修了", "evidence": "確認テスト・2026年8月"},
+        {"name": "機密・データ取扱い", "status": "修了", "evidence": "確認テスト・2026年8月"},
+        {"name": "文書校正", "status": "実務確認", "evidence": "合成実績 5件"}
+      ],
+      "eligibility": [
+        {"rank": "D", "status": "応募可能", "reason": "一般公開ランク"},
+        {"rank": "C", "status": "要件未達", "reason": "U-WORD加入が必要"},
+        {"rank": "B・A", "status": "審査前", "reason": "加入後に専門実績と担当者確認が必要"}
+      ]
+    },
     "metrics": [
       {"label": "確定した手取り", "value": "¥126,400"},
       {"label": "今月の稼働", "value": "24時間"},
@@ -694,6 +742,7 @@
     ]
   },
   "project": {
+    "id": "project-1",
     "title": "地域研修レポート整備（架空案件）",
     "status": "進行中",
     "unallocated": "¥8,000",
@@ -714,6 +763,23 @@
       {"id": "application-a", "name": "テスト会員 A", "task": "受講記録の構造化と確認", "message": "表計算と文章整理の経験を生かし、9月1日から着手できます。", "status": "選考中"},
       {"id": "application-b", "name": "テスト会員 B", "task": "受講記録の構造化と確認", "message": "同種の匿名化チェックを経験しています。", "status": "選考中"}
     ],
+    "workroom": {
+      "participants": [
+        {"name": "依頼担当者", "role": "発注・検収"},
+        {"name": "テスト会員", "role": "作業・進捗報告"}
+      ],
+      "milestones": [
+        {"id": "milestone-1", "title": "元データの匿名化確認", "due": "2026-09-02", "done": true},
+        {"id": "milestone-2", "title": "構造化データの中間確認", "due": "2026-09-05", "done": false},
+        {"id": "milestone-3", "title": "最終成果物の検収", "due": "2026-09-10", "done": false}
+      ],
+      "messages": [
+        {"id": "message-1", "author": "依頼担当者", "body": "匿名化確認後に、最初の10件を中間共有してください。", "createdAt": "2026/8/31 11:00"}
+      ],
+      "resources": [
+        {"id": "resource-1", "label": "作業手順書（例）", "url": "https://example.com/uai-work-guide"}
+      ]
+    },
     "steps": [
       {"label": "元データの匿名化確認", "done": true},
       {"label": "受講記録の構造化", "done": false},

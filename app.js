@@ -73,6 +73,23 @@ function skillRequirement(task, locked = false) {
   </section>`;
 }
 
+function aiPolicySection(task) {
+  const policy = task.aiPolicy;
+  if (!policy) return '';
+  return `<section class="ai-policy" aria-labelledby="ai-policy-title">
+    <h2 class="section-title" id="ai-policy-title">AI利用とデータ取扱い</h2>
+    <div class="paper-card detail-card">
+      <dl class="definition-list">
+        <dt>AI利用</dt><dd>${escapeHtml(policy.use)}</dd>
+        <dt>使用できる環境</dt><dd>${(policy.tools || []).map((tool) => `<span class="skill">${escapeHtml(tool)}</span>`).join(' ')}</dd>
+        <dt>入力禁止</dt><dd>${escapeHtml(policy.data)}</dd>
+        <dt>人による確認</dt><dd>${escapeHtml(policy.humanReview)}</dd>
+        <dt>利用の申告</dt><dd>${escapeHtml(policy.disclosure)}</dd>
+      </dl>
+    </div>
+  </section>`;
+}
+
 const path = (new URLSearchParams(location.search).get('screen') || '/tasks').replace(/\/$/, '');
 
 const navItems = [
@@ -92,7 +109,7 @@ function header(meta) {
   return `
     <header class="site-header">
       <div class="brand-row">
-        <a class="brand" href="${routeHref('/tasks')}">U-AI協会 案件掲示板</a>
+        <a class="brand" href="${routeHref('/tasks')}">U-work</a>
         <span class="brand-note">紹介制の仕事を、確かな条件でつなぐ</span>
       </div>
       <nav class="primary-nav" aria-label="主要メニュー">
@@ -222,6 +239,7 @@ function taskDetailScreen(data) {
         <h2 class="section-title" id="skills-title">必要スキルと応募目安</h2>
         <div class="paper-card detail-card">${skillRequirement(task)}</div>
       </section>
+      ${aiPolicySection(task)}
       <section aria-labelledby="breakdown-title">
         <h2 class="section-title" id="breakdown-title">手取りの内訳</h2>
         <div class="paper-card balance-sheet">
@@ -289,6 +307,31 @@ function lockedTaskScreen(data) {
     </section>`;
 }
 
+function trustPassport(member) {
+  const trust = member.trust;
+  if (!trust) return '';
+  return `<section class="trust-passport" aria-labelledby="trust-passport-title">
+    <h2 class="section-title" id="trust-passport-title">信頼パスポート</h2>
+    <p class="notice">本人確認・認定・実績を、応募条件と一緒に確認できます。公開デモの表示はすべて合成データです。</p>
+    <div class="trust-status-grid">
+      <div class="metric metric-ok"><span class="money-label">本人確認</span><strong>${escapeHtml(trust.identity)}</strong></div>
+      <div class="metric metric-ok"><span class="money-label">秘密保持</span><strong>${escapeHtml(trust.nda)}</strong></div>
+    </div>
+    <h3>認定・スキル証跡</h3>
+    <ul class="trust-certifications">
+      ${trust.certifications.map((item) => `<li class="trust-certification"><span class="state-text state-text-ok">${escapeHtml(item.status)}</span><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.evidence)}</span></li>`).join('')}
+    </ul>
+    <h3>仕事の実績</h3>
+    <div class="metric-grid trust-performance">
+      ${trust.performance.map((item) => `<div class="metric"><span class="money-label">${escapeHtml(item.label)}</span><strong class="num">${escapeHtml(item.value)}</strong></div>`).join('')}
+    </div>
+    <h3>ランク別の応募可否</h3>
+    <ul class="eligibility-list">
+      ${trust.eligibility.map((item) => `<li><b class="rank-badge rank-${escapeHtml(item.rank[0]).toLowerCase()}">ランク ${escapeHtml(item.rank)}</b><strong>${escapeHtml(item.status)}</strong><span>${escapeHtml(item.reason)}</span></li>`).join('')}
+    </ul>
+  </section>`;
+}
+
 function myPageScreen(data) {
   const member = data.member;
   const notificationItems = member.notifications?.length
@@ -343,6 +386,7 @@ function myPageScreen(data) {
       ${member.showMissedBonus === false ? '' : `<p class="member-bonus">加入していれば <strong class="num">${escapeHtml(member.missedBonus)}</strong> 多かった</p>`}
       ${member.missedBonusUnavailable ? '<p class="notice">契約変更または証跡確認中のため、加入時の正確な差額は表示していません。</p>' : ''}
     </section>
+    ${trustPassport(member)}
     <section aria-labelledby="my-work-title">
       <h2 class="section-title" id="my-work-title">自分のタスク</h2>
       <ul class="ruled-list">
@@ -435,9 +479,52 @@ function projectBoardScreen(data) {
     </section>`;
 }
 
+function workroomSection(project) {
+  const room = project.workroom;
+  if (!room) return '';
+  return `<section class="workroom" aria-labelledby="workroom-title">
+    <div class="project-board-header">
+      <div><span class="eyebrow">PROJECT WORKROOM</span><h2 id="workroom-title">案件ワークルーム</h2><p>案件に関する共有・期限・資料を一か所で確認します。</p></div>
+      <span class="state-text state-text-ok">${escapeHtml(project.status)}</span>
+    </div>
+    <aside class="notice">公開デモでは、このブラウザだけに保存します。実通知・ファイル送信・本人確認・契約変更は行いません。</aside>
+    <div class="workroom-grid">
+      <section class="paper-card detail-card" aria-labelledby="participants-title">
+        <h3 id="participants-title">参加者</h3>
+        <ul class="ruled-list compact-list">${room.participants.map((participant) => `<li class="workroom-participant"><strong>${escapeHtml(participant.name)}</strong><span>${escapeHtml(participant.role)}</span></li>`).join('')}</ul>
+      </section>
+      <section class="paper-card detail-card" aria-labelledby="milestones-title">
+        <h3 id="milestones-title">マイルストーン</h3>
+        <div class="check-list" id="workroom-milestones"></div>
+        <p class="status-message" id="workroom-milestone-status" role="status" aria-live="polite"></p>
+      </section>
+      <section class="paper-card detail-card workroom-wide" aria-labelledby="messages-title">
+        <h3 id="messages-title">メッセージ</h3>
+        <ul class="ruled-list compact-list" id="workroom-messages" aria-live="polite"></ul>
+        <form class="workroom-form" id="workroom-message-form">
+          <div class="field"><label for="workroom-message">進捗・確認事項</label><textarea id="workroom-message" name="message" required maxlength="500" placeholder="例：最初の10件を共有しました"></textarea></div>
+          <button class="button" type="submit">メッセージを追加</button>
+          <p class="status-message" id="workroom-message-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="paper-card detail-card workroom-wide" aria-labelledby="resources-title">
+        <h3 id="resources-title">共有資料</h3>
+        <ul class="ruled-list compact-list" id="workroom-resources" aria-live="polite"></ul>
+        <form class="workroom-form workroom-resource-form" id="workroom-resource-form">
+          <div class="field"><label for="workroom-resource-label">資料名</label><input id="workroom-resource-label" name="label" required maxlength="80"></div>
+          <div class="field"><label for="workroom-resource-url">共有URL</label><input id="workroom-resource-url" name="url" type="url" required placeholder="https://example.com/document"></div>
+          <button class="button button-secondary" type="submit">URLを共有</button>
+          <p class="status-message" id="workroom-resource-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
+  </section>`;
+}
+
 function projectScreen(data) {
   const project = data.project;
   return `${pageHeader('SCREEN 04 / PROJECT', project.title, `状態：${project.status}`)}
+    ${workroomSection(project)}
     <div class="admin-grid">
       <section aria-labelledby="pool-title">
         <h2 class="section-title" id="pool-title">未確定の原資</h2>
@@ -1442,6 +1529,93 @@ function initMyPage({ connected = false } = {}) {
   });
 }
 
+function initWorkroom(project) {
+  const room = project?.workroom;
+  const root = document.querySelector('.workroom');
+  if (!room || !root) return;
+  const storageKey = `uai-workroom:${project.id || 'project-1'}`;
+  const defaults = {
+    messages: room.messages || [],
+    resources: room.resources || [],
+    milestoneDone: Object.fromEntries(room.milestones.map((item) => [item.id, item.done === true])),
+  };
+  let state = structuredClone(defaults);
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    if (saved && Array.isArray(saved.messages) && Array.isArray(saved.resources) && saved.milestoneDone) {
+      const messages = saved.messages.filter((item) => item && typeof item.body === 'string' && typeof item.author === 'string').slice(-50);
+      const resources = saved.resources.filter((item) => {
+        try { return item && typeof item.label === 'string' && ['http:', 'https:'].includes(new URL(item.url).protocol); } catch { return false; }
+      }).slice(-30);
+      const milestoneDone = { ...defaults.milestoneDone };
+      room.milestones.forEach((item) => {
+        if (typeof saved.milestoneDone[item.id] === 'boolean') milestoneDone[item.id] = saved.milestoneDone[item.id];
+      });
+      state = { messages, resources, milestoneDone };
+    }
+  } catch {}
+
+  const messages = root.querySelector('#workroom-messages');
+  const resources = root.querySelector('#workroom-resources');
+  const milestones = root.querySelector('#workroom-milestones');
+  const save = () => {
+    try { localStorage.setItem(storageKey, JSON.stringify(state)); return true; } catch { return false; }
+  };
+  const render = () => {
+    messages.innerHTML = state.messages.map((item) => `<li class="workroom-message"><strong>${escapeHtml(item.author)}</strong><span>${escapeHtml(item.body)}</span><time>${escapeHtml(item.createdAt || '')}</time></li>`).join('') || '<li>メッセージはまだありません。</li>';
+    resources.innerHTML = state.resources.map((item) => `<li class="workroom-resource"><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a><span>${escapeHtml(item.url)}</span></li>`).join('') || '<li>共有資料はまだありません。</li>';
+    milestones.innerHTML = room.milestones.map((item) => `<label class="check-row workroom-milestone"><input type="checkbox" data-milestone-id="${escapeHtml(item.id)}"${state.milestoneDone[item.id] ? ' checked' : ''}><span><strong>${escapeHtml(item.title)}</strong><small>期限 ${escapeHtml(item.due)}</small></span></label>`).join('');
+  };
+  render();
+
+  root.querySelector('#workroom-message-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.checkValidity()) return form.reportValidity();
+    const body = form.elements.message.value.trim();
+    if (!body) return;
+    state.messages.push({ id: crypto.randomUUID(), author: 'あなた', body, createdAt: 'たった今' });
+    state.messages = state.messages.slice(-50);
+    const status = root.querySelector('#workroom-message-status');
+    status.textContent = save() ? 'このブラウザに追加しました。' : '追加しましたが、ブラウザへ保存できませんでした。';
+    form.reset();
+    render();
+  });
+
+  root.querySelector('#workroom-resource-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const status = root.querySelector('#workroom-resource-status');
+    if (!form.checkValidity()) return form.reportValidity();
+    let url;
+    try { url = new URL(form.elements.url.value.trim()); } catch { url = null; }
+    if (!url || !['http:', 'https:'].includes(url.protocol)) {
+      status.textContent = 'https:// または http:// で始まるURLを入力してください。';
+      return;
+    }
+    state.resources.push({ id: crypto.randomUUID(), label: form.elements.label.value.trim(), url: url.href });
+    state.resources = state.resources.slice(-30);
+    status.textContent = save() ? '共有URLをこのブラウザに追加しました。' : '追加しましたが、ブラウザへ保存できませんでした。';
+    form.reset();
+    render();
+  });
+
+  milestones.addEventListener('change', (event) => {
+    const checkbox = event.target.closest('[data-milestone-id]');
+    if (!checkbox) return;
+    const previous = !checkbox.checked;
+    state.milestoneDone[checkbox.dataset.milestoneId] = checkbox.checked;
+    const status = root.querySelector('#workroom-milestone-status');
+    if (save()) {
+      status.textContent = '進捗をこのブラウザに保存しました。';
+      return;
+    }
+    state.milestoneDone[checkbox.dataset.milestoneId] = previous;
+    checkbox.checked = previous;
+    status.textContent = '進捗をブラウザへ保存できませんでした。変更は反映していません。';
+  });
+}
+
 function initProject({ connected = false, projectId, changeDraft } = {}) {
   const pendingPayments = new WeakMap();
   const pendingChanges = new WeakMap();
@@ -1981,7 +2155,7 @@ async function start() {
 
   shell.innerHTML = `${header(data.meta)}<main class="page" id="main">${screen(data)}</main>`;
   shell.removeAttribute('aria-busy');
-  document.title = `${document.querySelector('h1').textContent} | U-AI Board${connected ? '' : ' 公開デモ'}`;
+  document.title = `${document.querySelector('h1').textContent} | U-work${connected ? '' : ' 公開デモ'}`;
 
   if (path === '/tasks') initTaskList(data);
   if (path === '/me') initMyPage({ connected });
@@ -1990,6 +2164,7 @@ async function start() {
   if (path === '/projects/project-1' || projectMatch) initProject({
     connected, projectId: data.project.id, changeDraft: data.project.changeDraft,
   });
+  if (path === '/projects/project-1' || projectMatch) initWorkroom(data.project);
   if (path === '/projects/project-1/edit') initProjectEditor(data);
   if (path === '/projects/new') initConnectedProjectEditor();
   if (path === '/changes/change-1' || changeMatch) initChange({ connected, changeId: changeMatch?.[1] });
